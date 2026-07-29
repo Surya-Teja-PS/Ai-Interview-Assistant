@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
-from langchain_community.chat_models import init_chat_model
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents import create_agent
 import assemblyai as aai
@@ -19,11 +19,10 @@ MURF_API_KEY = os.getenv("MURF_API_KEY")
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 aai.settings.api_key = ASSEMBLYAI_API_KEY
 
-model = init_chat_model(
-    "google_genai:gemini-3.6-flash",
-    api_key=GOOGLE_API_KEY
+model = ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    google_api_key=GOOGLE_API_KEY
 )
-
 checkpointer = InMemorySaver()
 agent = create_agent(
     model=model,
