@@ -69,3 +69,11 @@ Listen to the AI's question, click the microphone button to record your response
 Submit your answer. The AI will process it and ask the next sequential question.
 
 After 5 questions, the interview will conclude. Click Get Feedback to receive your final score and review.
+
+# AI Interview Assistant 🎙️🤖
+
+![Interview Screen](Screenshot%202026-07-29%20162550.png)
+
+![Feedback Screen](Screenshot%202026-07-29%20162603.png)
+
+An interactive, web-based AI Interview Assistant that conducts real-time, voice-to-voice technical interviews. Powered by advanced Large Language Models and state-of-the-art voice processing, this application dynamically adapts to candidate responses and provides detailed, actionable feedback at the end of the session.
