@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
-from langchain.chat_models import init_chat_model
+from langchain_community.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents import create_agent
 import assemblyai as aai
