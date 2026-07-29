@@ -1,5 +1,3 @@
-
-
 // Global State
 let mediaRecorder = null;
 let recordingChunks = [];
@@ -291,10 +289,11 @@ function stopRecording() {
 }
 
 
-// ========== API FUNCTIONS ==========
+// ========== API FUNCTIONS (UPDATED TO RENDER URL) ==========
 
-const startInterviewApiUrl = "http://127.0.0.1:5000/start-interview";
+const API_BASE_URL = "https://ai-interview-assistant-j9jr.onrender.com";
 
+const startInterviewApiUrl = `${API_BASE_URL}/start-interview`;
 
 async function startInterview() {
     startInterviewBtn.classList.add("hidden");
@@ -328,8 +327,7 @@ async function startInterview() {
     }
 }
 
-const submitAnswerApiUrl = "http://127.0.0.1:5000/submit-answer";
-
+const submitAnswerApiUrl = `${API_BASE_URL}/submit-answer`;
 
 async function submitAnswer() {
     if (!recordedBlob) return;
@@ -389,8 +387,6 @@ async function submitAnswer() {
     }
 }
 
-
-
 async function endInterview() {
     if (!confirm("End interview and get feedback?")) return;
 
@@ -401,7 +397,7 @@ async function endInterview() {
     await getFeedback();
 }
 
-const getFeedbackApiUrl = "http://127.0.0.1:5000/get-feedback";
+const getFeedbackApiUrl = `${API_BASE_URL}/get-feedback`;
 
 async function getFeedback() {
     showFeedbackSection();
