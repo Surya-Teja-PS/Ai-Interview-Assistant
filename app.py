@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.checkpoint.memory import MemorySaver
+from langchain.memory import ConversationBufferMemory
 from langchain.agents import initialize_agent, AgentType
 import assemblyai as aai
 import os
@@ -23,13 +23,14 @@ model = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     google_api_key=GOOGLE_API_KEY
 )
-checkpointer = MemorySaver()
+
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 agent = initialize_agent(
     tools=[],
     llm=model,
     agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
     verbose=True,
-    memory=checkpointer
+    memory=memory
 )
 
 question_count = 0
@@ -104,31 +105,29 @@ def stream_audio(text):
 
 @app.route("/start-interview", methods=["POST"])
 def start_interview():
-    global current_subject, question_count, checkpointer, agent
+    global current_subject, question_count, memory, agent
     
     # Fixed empty JSON vulnerability
     data = request.json or {}
     current_subject = data.get("subject", "Python")
     question_count = 1
     
-    checkpointer = MemorySaver()
-    agent = create_agent(
-        model=model,
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    agent = initialize_agent(
         tools=[],
-        checkpointer=checkpointer
+        llm=model,
+        agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+        verbose=True,
+        memory=memory
     )
-    config = {"configurable": {"thread_id": thread_id}}
+    
     formatted_prompt = INTERVIEW_PROMPT.format(subject=current_subject)
     
     response = agent.invoke({
-        "messages": [
-            {"role": "system", "content": formatted_prompt},
-            {"role": "user", "content": f"Start the interview with a warm greeting and ask the first question about {current_subject}. Keep it SHORT (1-2 sentences)."}
-        ]
-    }, config=config)
+        "input": f"System instructions: {formatted_prompt}\n\nStart the interview with a warm greeting and ask the first question about {current_subject}. Keep it SHORT (1-2 sentences)."
+    })
     
-    # Cleaned the question text here
-    raw_question = response["messages"][-1].content
+    raw_question = response.get("output", str(response))
     question = clean_gemini_text(raw_question)
     
     print(f"\n[Question {question_count}] {question}")
@@ -159,16 +158,13 @@ def submit_answer():
         answer = "[Candidate provided a verbal response]"
     
     print(f"[Answer {question_count}] {answer}")
-    config = {"configurable": {"thread_id": thread_id}}
-    agent.invoke({"messages": [{"role": "user", "content": answer}]}, config=config)
     
     if question_count >= 5:
         response = agent.invoke({
-            "messages": [{"role": "user", "content": "That was the 5th question. Briefly acknowledge their ACTUAL answer and let them know the interview is complete. Keep it SHORT."}]
-        }, config=config)
+            "input": f"The candidate answered: {answer}. That was the 5th question. Briefly acknowledge their ACTUAL answer and let them know the interview is complete. Keep it SHORT."
+        })
         
-        # Cleaned closing message here
-        raw_closing = response["messages"][-1].content
+        raw_closing = response.get("output", str(response))
         closing_message = clean_gemini_text(raw_closing)
         
         print(f"\n[Closing] {closing_message}")
@@ -179,7 +175,7 @@ def submit_answer():
         )
     
     question_count += 1
-    prompt = f"""The candidate just answered question {question_count - 1}.
+    prompt = f"""The candidate just answered question {question_count - 1} with: "{answer}".
 
 Look at their ACTUAL answer above. Do NOT assume or make up what they said.
 
@@ -191,10 +187,9 @@ Now ask question {question_count} of 5:
 
 Be conversational but CONCISE. Only reference what they truly said."""
     
-    response = agent.invoke({"messages": [{"role": "user", "content": prompt}]}, config=config)
+    response = agent.invoke({"input": prompt})
     
-    # Cleaned next question here
-    raw_question = response["messages"][-1].content
+    raw_question = response.get("output", str(response))
     question = clean_gemini_text(raw_question)
     
     print(f"\n[Question {question_count}] {question}")
@@ -207,24 +202,15 @@ Be conversational but CONCISE. Only reference what they truly said."""
 @app.route("/get-feedback", methods=["POST"])
 def get_feedback():
     """Generate detailed interview feedback"""
-    config = {"configurable": {"thread_id": thread_id}}
     response = agent.invoke({
-        "messages": [
-        {
-            "role": "user", 
-            "content": f"{FEEDBACK_PROMPT}\n\nReview our complete {current_subject} interview conversation and provide detailed feedback."
-        }
-        ]
-    }, config=config)
+        "input": f"{FEEDBACK_PROMPT}\n\nReview our complete {current_subject} interview conversation and provide detailed feedback."
+    })
     
-    # 1. Get the raw data block
-    raw_text = response["messages"][-1].content
+    raw_text = response.get("output", str(response))
     print(f"\n[Feedback Generated Raw]\n{raw_text}\n")
     
-    # 2. Extract just the text string using the helper function
     text = clean_gemini_text(raw_text)
     
-    # 3. Now strip and parse it safely
     cleaned = text.strip()
     if "```" in cleaned:
         cleaned = cleaned.split("```")[1].replace("json", "").strip()
