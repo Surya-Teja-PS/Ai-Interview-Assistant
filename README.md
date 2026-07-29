@@ -36,7 +36,7 @@ You will need Python 3.x installed on your machine, along with active API keys f
 ### Installation
 
 **1. Clone the repository**
-```bash
+"```bash"
 git clone [https://github.com/YOUR-USERNAME/ai-interview-assistant.git](https://github.com/YOUR-USERNAME/ai-interview-assistant.git)
 cd ai-interview-assistant
 
