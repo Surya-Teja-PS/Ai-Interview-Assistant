@@ -127,3 +127,5 @@ Balancing structural design labs and heavy coursework while independently resear
 I pushed through complex debugging and late nights because I was determined to transform this AI from a simple tool into an intelligent partner.
 
 
+Question.)  "What was the biggest failure or bug you encountered while building this, and how did you fix it?"
+Ans.) "The biggest bug I faced was a terrible audio delay when I first connected the voice features. The AI was taking 5 to 10 seconds to respond, which made the interview feel completely unnatural. I realized the problem was that my code was trying to process the entire audio file and generate the complete text response all at once before it would start speaking. To fix it, I had to tear down my initial code and rebuild the backend to stream the data in tiny chunks. This way, the moment the AI generated the first few words, it started speaking immediately while the rest loaded in the background. It was a frustrating roadblock, but it forced me to learn asynchronous programming on the fly, and it successfully dropped the lag to zero."
