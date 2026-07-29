@@ -3,7 +3,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import MemorySaver
-from langchain.agents import create_agent
+from langchain.agents import initialize_agent, AgentType
 import assemblyai as aai
 import os
 import base64
@@ -24,10 +24,12 @@ model = ChatGoogleGenerativeAI(
     google_api_key=GOOGLE_API_KEY
 )
 checkpointer = MemorySaver()
-agent = create_agent(
-    model=model,
+agent = initialize_agent(
     tools=[],
-    checkpointer=checkpointer
+    llm=model,
+    agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+    verbose=True,
+    memory=checkpointer
 )
 
 question_count = 0
