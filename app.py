@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.memory import MemorySaver
 from langchain.agents import create_agent
 import assemblyai as aai
 import os
@@ -23,7 +23,7 @@ model = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     google_api_key=GOOGLE_API_KEY
 )
-checkpointer = InMemorySaver()
+checkpointer = MemorySaver()
 agent = create_agent(
     model=model,
     tools=[],
@@ -109,7 +109,7 @@ def start_interview():
     current_subject = data.get("subject", "Python")
     question_count = 1
     
-    checkpointer = InMemorySaver()
+    checkpointer = MemorySaver()
     agent = create_agent(
         model=model,
         tools=[],
